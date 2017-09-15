@@ -1,10 +1,11 @@
 package org.intellij.plugins.ceylon.ide.annotator;
 
 import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import org.intellij.plugins.ceylon.ideInsightTestSupport;
 import org.intellij.plugins.ceylon.ide.psi.CeylonFile;
+import org.intellij.plugins.ceylon.ide.psi.CeylonLocalAnalyzer;
 
-public class CeylonSyntaxAnnotatorTest extends LightCodeInsightFixtureTestCase {
+public class CeylonSyntaxAnnotatorTest extends CeylonCodeInsightTestSupport {
 
     @Override
     protected String getTestDataPath() {
@@ -15,19 +16,13 @@ public class CeylonSyntaxAnnotatorTest extends LightCodeInsightFixtureTestCase {
         testSyntax("SyntaxError", false, false, false);
     }
 
-/*
-    public void testInexistentPackage() throws Exception {
-        testSyntax("InexistentPackage", false, false, false);
-        // todo: Make sure CeylonTypeCheckerAnnotator finishes its job to test this
-    }
-*/
-
     private void testSyntax(String cuName, boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings) {
-        final PsiFile[] files = myFixture.configureByFiles("org/intellij/plugins/ceylon/annotator/" + cuName + ".ceylon");
-        final CeylonFile file = (CeylonFile) files[0];
-//        TypeCheckerInvoker.invokeTypeChecker(file);
-//        System.out.println(file.getContainingDirectory());
-//        System.out.println(file.getCompilationUnit().getUnit());
+
+        PsiFile[] files = myFixture.configureByFiles("org/intellij/plugins/ceylon/annotator/" + cuName + ".ceylon");
+        CeylonLocalAnalyzer localAnalyzer = ((CeylonFile) files[0]).getLocalAnalyzer();
+        if (localAnalyzer != null) {
+            localAnalyzer.ensureTypechecked();
+        }
         myFixture.checkHighlighting(checkWarnings, checkInfos, checkWeakWarnings);
     }
 }

@@ -1,5 +1,0 @@
-[defaults]
-encoding=UTF-8
-
-[repositories]
-lookup=../intelliJ-repository

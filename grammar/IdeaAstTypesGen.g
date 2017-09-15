@@ -10,17 +10,11 @@ grammar IdeaAstTypesGen;
 
 nodeList : { 
             println("package org.intellij.plugins.ceylon.ide.psi;\n");
-            println("import com.intellij.psi.tree.IElementType;");
-            println("import com.intellij.psi.PsiElement;");
-            println("import com.intellij.lang.ASTNode;");
-            println("import com.intellij.psi.tree.IFileElementType;");
-            println("import org.intellij.plugins.ceylon.ide.psi.stub.CeylonStubTypes;");
-            println("import org.intellij.plugins.ceylon.ide.psi.stub.impl.ClassElementType;");
-            println("import org.intellij.plugins.ceylon.ide.psi.impl.*;\n");
+            println("import com.intellij.psi.tree.IElementType;\n");
+
             println("/* Generated using Antlr by IdeaAstTypesGen.g */");
             println("public interface CeylonTypes {");
-            println("    IFileElementType CEYLON_FILE = CeylonStubTypes.CEYLON_FILE;\n");
-
+            println("    IElementType GUARDED_VARIABLE = new CeylonElementType(\"GUARDED_VARIABLE\");");
 
            }
            (DESCRIPTION? node)+ 
@@ -41,7 +35,7 @@ subnode : n=NODE_NAME '?'? f=FIELD_NAME?
         | mn=NODE_NAME '*' f=FIELD_NAME?
         ;
 
-field : 'abstract'? (TYPE_NAME|'boolean') FIELD_NAME ';';
+field : 'abstract'? (TYPE_NAME|'boolean'|'string') FIELD_NAME ';';
 
 NODE_NAME : ('A'..'Z'|'_')+;
 

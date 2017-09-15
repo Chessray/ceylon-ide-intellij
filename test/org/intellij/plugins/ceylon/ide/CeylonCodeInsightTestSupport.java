@@ -1,10 +1,12 @@
 package org.intellij.plugins.ceylon.ide;
 
+import com.intellij.facet.FacetManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import com.redhat.ceylon.compiler.typechecker.TypeChecker;
-import org.intellij.plugins.ceylon.ide.annotator.TypeCheckerInvoker;
-import org.intellij.plugins.ceylon.ide.annotator.TypeCheckerProvider;
 import org.intellij.plugins.ceylon.ide.psi.CeylonFile;
+import org.intellij.plugins.ceylon.ide.psi.CeylonLocalAnalyzer;
+import org.intellij.plugins.ceylon.ide.facet.CeylonFacet;
 
 import java.util.concurrent.TimeoutException;
 
@@ -15,15 +17,31 @@ public abstract class CeylonCodeInsightTestSupport extends LightCodeInsightFixtu
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        TypeCheckerProvider typeCheckerProvider = myFixture.getModule().getComponent(TypeCheckerProvider.class);
-        typeChecker = typeCheckerProvider.createTypeChecker();
+
+        if (FacetManager.getInstance(myModule).getFacetByType(CeylonFacet.ID) == null) {
+            ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                @Override
+                public void run() {
+                    FacetManager.getInstance(myModule).addFacet(CeylonFacet.getFacetType(), CeylonFacet.getFacetType().getPresentableName(), null);
+                }
+            });
+        }
+
+        ITypeCheckerProvider component = myModule.getComponent(ITypeCheckerProvider.class);
+        if (component instanceof TypeCheckerProvider) {
+            ((TypeCheckerProvider) component).moduleAdded();
+            typeChecker = component.getTypeChecker();
+        }
     }
 
     protected CeylonFile initFile(String filename) throws InterruptedException, TimeoutException {
         myFixture.configureByFiles(PATH + filename);
         final CeylonFile ceylonFile = (CeylonFile) myFixture.getFile();
 
-        TypeCheckerInvoker.invokeTypeChecker(ceylonFile, typeChecker);
+        CeylonLocalAnalyzer localAnalyzer = ceylonFile.getLocalAnalyzer();
+        if (localAnalyzer != null) {
+            localAnalyzer.ensureTypechecked();
+        }
         return ceylonFile;
     }
 

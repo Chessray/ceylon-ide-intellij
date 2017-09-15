@@ -12,10 +12,16 @@ nodeList : {
            println("package org.intellij.plugins.ceylon.ide.psi;\n");
            println("import com.intellij.lang.ASTNode;");
            println("import com.redhat.ceylon.compiler.typechecker.tree.Tree;");
-           println("import org.intellij.plugins.ceylon.ide.codeInsight.resolve.*;");
-           println("import org.intellij.plugins.ceylon.ide.psi.impl.CeylonCompositeElementImpl;");
+           println("import com.redhat.ceylon.compiler.typechecker.tree.CustomTree;");
+           println("import org.intellij.plugins.ceylon.ide.resolve.*;");
+           println("import org.intellij.plugins.ceylon.ide.psi.impl.*;");
            println("/* Generated using Antlr by PsiImplGen.g */");
            println("\npublic class CeylonPsiImpl {\n");
+           println("    public static class GuardedVariablePsiImpl extends CeylonCompositeElementImpl");
+           println("            implements CeylonPsi.GuardedVariablePsi {");
+           println("        public GuardedVariablePsiImpl(ASTNode astNode) { super(astNode); }");
+           println("        @Override public CustomTree.GuardedVariable getCeylonNode() { return (CustomTree.GuardedVariable) super.getCeylonNode(); }");
+           println("    }");
            }
            (nodeDescription? node)+ 
            EOF
@@ -36,7 +42,22 @@ node : '^' '('
            )
            |
            { $n.text.equals("IDENTIFIER") }?=> (
-             { print("IdentifierPsiImpl extends CeylonResolvable"); }
+             { print("IdentifierPsiImpl extends ResolvableIdentifier"); }
+             (':' NODE_NAME)?
+           )
+           |
+           { $n.text.equals("LOCAL_MODIFIER") }?=> (
+             { print("LocalModifierPsiImpl extends ResolvableLocalModifier"); }
+             (':' NODE_NAME)?
+           )
+           |
+           { $n.text.equals("STRING_LITERAL") }?=> (
+             { print("StringLiteralPsiImpl extends CeylonDocResolvable"); }
+             (':' NODE_NAME)?
+           )
+           |
+           { $n.text.equals("MODULE_DESCRIPTOR") || $n.text.equals("PACKAGE_DESCRIPTOR") }?=> (
+             { print(className($n.text) + "PsiImpl extends NamedStatementOrArgumentPsi"); }
              (':' NODE_NAME)?
            )
            |
@@ -59,8 +80,12 @@ extendsNode :
                 { print(" extends DeclarationPsiNameIdOwner"); }
               )
               |
-              { $n.text.equals("PARAMETER_DECLARATION") }?=> (
-                { print(" extends ParameterDeclarationPsiIdOwner"); }
+              { $n.text.equals("TYPED_ARGUMENT") }?=> (
+                { print(" extends TypedArgumentPsiNameIdOwner"); }
+              )
+              |
+              { $n.text.equals("PARAMETER") }?=> (
+                { print(" extends ParameterPsiIdOwner"); }
               )
               | { print(" extends " + className($n.text) + "PsiImpl"); }
             )
@@ -83,6 +108,8 @@ subnode :
 field : t=TYPE_NAME f=FIELD_NAME
         ';'
       | 'boolean' f=FIELD_NAME
+        ';'
+      | 'string' f=FIELD_NAME
         ';'
       | l=TYPE_NAME '<' t=TYPE_NAME '>' f=FIELD_NAME
         ';'
